@@ -28,6 +28,15 @@ const LobsterIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
+const CornerAccents = () => (
+  <>
+    <div className="corner-accent corner-tl" />
+    <div className="corner-accent corner-tr" />
+    <div className="corner-accent corner-bl" />
+    <div className="corner-accent corner-br" />
+  </>
+);
+
 const App: React.FC = () => {
   const [wallets, setWallets] = useState<{ address: string; privateKey: string }[]>([]);
   const [activeWalletIndex, setActiveWalletIndex] = useState<number | null>(null);
@@ -134,6 +143,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen">
       <div className="glow-overlay" />
+      <div className="scan-line" />
 
       <div className="container">
         <nav className="navbar">
@@ -146,20 +156,32 @@ const App: React.FC = () => {
 
         <main>
           {/* Hero Section */}
-          <section className="hero" style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <section className="hero" style={{ textAlign: 'center', marginBottom: '4rem', padding: '4rem 0', position: 'relative' }}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 style={{ fontSize: '4rem', marginBottom: '1rem', fontWeight: 700 }}>
-                Lobster <span style={{ color: 'var(--primary)' }}>Pad</span>
+              <div className="tech-text" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>
+                Generation Protocol v1.0.4
+              </div>
+              <h1 style={{ fontSize: '5rem', marginBottom: '1rem', fontWeight: 700, letterSpacing: '-2px' }}>
+                Lobster <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>Pad</span>
               </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
                 the fastest, claws-on way to launch your memecoins.
                 Full metadata, IPFS storage, and dev-buy in one click.
               </p>
+
+              <div className="claude-badge">
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }} />
+                Supported by Claude AI
+              </div>
             </motion.div>
+
+            {/* Decorative Tech Elements */}
+            <div style={{ position: 'absolute', top: '10%', left: '5%', opacity: 0.2 }} className="tech-text">System.Ready</div>
+            <div style={{ position: 'absolute', bottom: '10%', right: '5%', opacity: 0.2 }} className="tech-text">Neural.Link.Active</div>
           </section>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', alignItems: 'start' }}>
@@ -173,6 +195,7 @@ const App: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
+                <CornerAccents />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                   <Wallet style={{ color: 'var(--primary)' }} />
                   <h2 style={{ fontSize: '1.5rem' }}>Wallet Manager</h2>
@@ -303,6 +326,7 @@ const App: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
+              <CornerAccents />
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
                 <Rocket style={{ color: 'var(--primary)' }} />
                 <h2 style={{ fontSize: '1.5rem' }}>Launch Token</h2>
