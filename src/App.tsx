@@ -77,6 +77,19 @@ const App: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [vampAddress, setVampAddress] = useState('');
   const [vampLoading, setVampLoading] = useState(false);
+  const [spamCount, setSpamCount] = useState(5);
+  const [spamLoading, setSpamLoading] = useState(false);
+  const [spamFormData, setSpamFormData] = useState({
+    name: '',
+    symbol: '',
+    description: '',
+    twitter: '',
+    telegram: '',
+    website: '',
+    amount: '0.01',
+    rpcUrl: 'https://api.mainnet-beta.solana.com'
+  });
+  const [spamImageFile, setSpamImageFile] = useState<File | null>(null);
 
   const handleVamp = async () => {
     if (!vampAddress) return;
@@ -256,7 +269,8 @@ const App: React.FC = () => {
         formData.privateKey,
         metadata,
         formData.rpcUrl,
-        parseFloat(formData.amount)
+        parseFloat(formData.amount),
+        true // useVanity
       );
 
       setStatus({ type: 'success', message: 'Successfully launched!' });
@@ -264,6 +278,55 @@ const App: React.FC = () => {
     } catch (err: any) {
       setStatus({ type: 'error', message: `Launch failed: ${err.message}` });
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSpamLaunch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!spamImageFile) {
+      setStatus({ type: 'error', message: 'Please select an image for spam launching' });
+      return;
+    }
+    if (!formData.privateKey) {
+      setStatus({ type: 'error', message: 'Private key is required (select a wallet first)' });
+      return;
+    }
+
+    setSpamLoading(true);
+    setLoading(true);
+    setStatus({ type: 'info', message: `Spam Protocol Initialized: Launching ${spamCount} tokens...` });
+
+    try {
+      for (let i = 0; i < spamCount; i++) {
+        setStatus({ type: 'info', message: `Launching token ${i + 1}/${spamCount}...` });
+
+        const metadata: TokenMetadata = {
+          name: `${spamFormData.name} #${i + 1}`,
+          symbol: `${spamFormData.symbol}${i + 1}`,
+          description: spamFormData.description,
+          twitter: spamFormData.twitter,
+          telegram: spamFormData.telegram,
+          website: spamFormData.website,
+          file: spamImageFile
+        };
+
+        const result = await launchToken(
+          formData.privateKey,
+          metadata,
+          spamFormData.rpcUrl,
+          parseFloat(spamFormData.amount),
+          false // No vanity for spam
+        );
+
+        console.log(`Launched token ${i + 1}:`, result.mint);
+      }
+
+      setStatus({ type: 'success', message: `Spam Launch Successful! ${spamCount} tokens deployed.` });
+    } catch (err: any) {
+      setStatus({ type: 'error', message: `Spam Launch interrupted: ${err.message}` });
+    } finally {
+      setSpamLoading(false);
       setLoading(false);
     }
   };
@@ -502,138 +565,268 @@ const App: React.FC = () => {
             </div>
 
             {/* Right Column: Launch Form */}
-            <motion.div
-              className="card"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              <CornerAccents />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <Rocket style={{ color: 'var(--primary)' }} />
-                <h2 style={{ fontSize: '1.5rem' }}>Launch Token</h2>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <motion.div
+                className="card"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <CornerAccents />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                  <Rocket style={{ color: 'var(--primary)' }} />
+                  <h2 style={{ fontSize: '1.5rem' }}>Launch Token</h2>
+                </div>
 
-              <form onSubmit={handleLaunch}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                <form onSubmit={handleLaunch}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div className="input-group">
+                      <label>Token Name</label>
+                      <input
+                        placeholder="e.g. Shiba King"
+                        value={formData.name}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Symbol</label>
+                      <input
+                        placeholder="e.g. SHIBA"
+                        value={formData.symbol}
+                        onChange={e => setFormData({ ...formData, symbol: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="input-group">
-                    <label>Token Name</label>
-                    <input
-                      placeholder="e.g. Shiba King"
-                      value={formData.name}
-                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    <label>Description</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Tell the world about your Shiba..."
+                      value={formData.description}
+                      onChange={e => setFormData({ ...formData, description: e.target.value })}
                       required
                     />
                   </div>
+
                   <div className="input-group">
-                    <label>Symbol</label>
+                    <label>Image (Required)</label>
+                    <div
+                      style={{
+                        border: '2px dashed var(--border)',
+                        borderRadius: '12px',
+                        padding: '2rem',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        background: imageFile ? 'rgba(255, 77, 77, 0.05)' : 'transparent'
+                      }}
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      {imageFile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                          <img
+                            src={URL.createObjectURL(imageFile)}
+                            alt="preview"
+                            style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }}
+                          />
+                          <span style={{ color: 'var(--primary)' }}>{imageFile.name}</span>
+                        </div>
+                      ) : (
+                        <div style={{ color: 'var(--text-muted)' }}>
+                          <Plus style={{ margin: '0 auto 0.5rem' }} />
+                          <p>Click to upload image</p>
+                        </div>
+                      )}
+                      <input
+                        id="file-upload"
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={e => setImageFile(e.target.files?.[0] || null)}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>
+                    <div className="input-group">
+                      <label>Twitter (Optional)</label>
+                      <input
+                        placeholder="link"
+                        value={formData.twitter}
+                        onChange={e => setFormData({ ...formData, twitter: e.target.value })}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Telegram (Optional)</label>
+                      <input
+                        placeholder="link"
+                        value={formData.telegram}
+                        onChange={e => setFormData({ ...formData, telegram: e.target.value })}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Website (Optional)</label>
+                      <input
+                        placeholder="link"
+                        value={formData.website}
+                        onChange={e => setFormData({ ...formData, website: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '2rem 0' }} />
+
+                  <div className="input-group">
+                    <label>Dev Buy Amount (SOL)</label>
                     <input
-                      placeholder="e.g. SHIBA"
-                      value={formData.symbol}
-                      onChange={e => setFormData({ ...formData, symbol: e.target.value })}
-                      required
+                      type="number"
+                      step="0.01"
+                      value={formData.amount}
+                      onChange={e => setFormData({ ...formData, amount: e.target.value })}
                     />
                   </div>
-                </div>
 
-                <div className="input-group">
-                  <label>Description</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Tell the world about your Shiba..."
-                    value={formData.description}
-                    onChange={e => setFormData({ ...formData, description: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Image (Required)</label>
-                  <div
-                    style={{
-                      border: '2px dashed var(--border)',
-                      borderRadius: '12px',
-                      padding: '2rem',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      background: imageFile ? 'rgba(255, 77, 77, 0.05)' : 'transparent'
-                    }}
-                    onClick={() => document.getElementById('file-upload')?.click()}
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{ width: '100%', marginTop: '1rem', height: '3.5rem', fontSize: '1.1rem' }}
+                    disabled={loading}
                   >
-                    {imageFile ? (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
-                        <img
-                          src={URL.createObjectURL(imageFile)}
-                          alt="preview"
-                          style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }}
-                        />
-                        <span style={{ color: 'var(--primary)' }}>{imageFile.name}</span>
-                      </div>
-                    ) : (
-                      <div style={{ color: 'var(--text-muted)' }}>
-                        <Plus style={{ margin: '0 auto 0.5rem' }} />
-                        <p>Click to upload image</p>
-                      </div>
-                    )}
-                    <input
-                      id="file-upload"
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={e => setImageFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
+                    {loading ? 'Processing...' : 'LAUNCH PAWS FIRST'}
+                  </button>
+                </form>
+              </motion.div>
+
+              {/* Spam Launch Card */}
+              <motion.div
+                className="card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                style={{ border: '1px solid rgba(255, 77, 77, 0.2)' }}
+              >
+                <CornerAccents />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <Rocket style={{ color: '#ff4d4d' }} />
+                  <h2 style={{ fontSize: '1.5rem' }}>Spam Launch Protocol</h2>
                 </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
+                  Deploy multiple tokens sequentially with independent metadata.
+                  <span style={{ color: '#ff4d4d', display: 'block', marginTop: '0.5rem' }}>Warning: Each launch requires SOL for dev-buy + fees.</span>
+                </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>
+                <form onSubmit={handleSpamLaunch}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                    <div className="input-group">
+                      <label>Base Token Name</label>
+                      <input
+                        placeholder="e.g. Shiba Spam"
+                        value={spamFormData.name}
+                        onChange={e => setSpamFormData({ ...spamFormData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Base Symbol</label>
+                      <input
+                        placeholder="e.g. SPAM"
+                        value={spamFormData.symbol}
+                        onChange={e => setSpamFormData({ ...spamFormData, symbol: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="input-group">
-                    <label>Twitter (Optional)</label>
-                    <input
-                      placeholder="link"
-                      value={formData.twitter}
-                      onChange={e => setFormData({ ...formData, twitter: e.target.value })}
+                    <label>Description</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Spam description..."
+                      value={spamFormData.description}
+                      onChange={e => setSpamFormData({ ...spamFormData, description: e.target.value })}
+                      required
                     />
                   </div>
+
                   <div className="input-group">
-                    <label>Telegram (Optional)</label>
-                    <input
-                      placeholder="link"
-                      value={formData.telegram}
-                      onChange={e => setFormData({ ...formData, telegram: e.target.value })}
-                    />
+                    <label>Spam Image</label>
+                    <div
+                      style={{
+                        border: '2px dashed var(--border)',
+                        borderRadius: '12px',
+                        padding: '1.5rem',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        background: spamImageFile ? 'rgba(255, 77, 77, 0.05)' : 'transparent'
+                      }}
+                      onClick={() => document.getElementById('spam-file-upload')?.click()}
+                    >
+                      {spamImageFile ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+                          <img
+                            src={URL.createObjectURL(spamImageFile)}
+                            alt="preview"
+                            style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }}
+                          />
+                          <span style={{ color: 'var(--primary)', fontSize: '0.8rem' }}>{spamImageFile.name}</span>
+                        </div>
+                      ) : (
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                          <Plus size={16} style={{ margin: '0 auto 0.2rem' }} />
+                          <p>Upload Spam Hero</p>
+                        </div>
+                      )}
+                      <input
+                        id="spam-file-upload"
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={e => setSpamImageFile(e.target.files?.[0] || null)}
+                      />
+                    </div>
                   </div>
-                  <div className="input-group">
-                    <label>Website (Optional)</label>
-                    <input
-                      placeholder="link"
-                      value={formData.website}
-                      onChange={e => setFormData({ ...formData, website: e.target.value })}
-                    />
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                    <div className="input-group">
+                      <label>Tokens to Launch</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={spamCount}
+                        onChange={(e) => setSpamCount(parseInt(e.target.value) || 1)}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Dev Buy per Token (SOL)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={spamFormData.amount}
+                        onChange={e => setSpamFormData({ ...spamFormData, amount: e.target.value })}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '2rem 0' }} />
-
-                <div className="input-group">
-                  <label>Dev Buy Amount (SOL)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={formData.amount}
-                    onChange={e => setFormData({ ...formData, amount: e.target.value })}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  style={{ width: '100%', marginTop: '1rem', height: '3.5rem', fontSize: '1.1rem' }}
-                  disabled={loading}
-                >
-                  {loading ? 'Processing...' : 'LAUNCH PAWS FIRST'}
-                </button>
-              </form>
-            </motion.div>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      marginTop: '1rem',
+                      background: 'linear-gradient(45deg, #ff4d4d, #f5a623)',
+                      height: '3.5rem',
+                      fontSize: '1.1rem'
+                    }}
+                    disabled={loading || spamLoading}
+                  >
+                    {spamLoading ? 'EXECUTING SPAM...' : 'EXECUTE SPAM PROTOCOL'}
+                  </button>
+                </form>
+              </motion.div>
+            </div>
           </div>
         </div>
       </main>

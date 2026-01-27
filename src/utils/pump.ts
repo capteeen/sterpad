@@ -93,15 +93,16 @@ export const launchToken = async (
     metadata: TokenMetadata,
     rpcUrl: string = DEFAULT_RPC,
     amount: number = 0.01,
+    useVanity: boolean = true,
     slippage: number = 10,
     priorityFee: number = 0.0005
 ) => {
     try {
         const signerKeypair = Keypair.fromSecretKey(bs58.decode(signerPrivateKey));
 
-        // Use a vanity mint address for the Shiba theme
+        // Use a vanity mint address for the Shiba theme if requested
         // Finding 'INU' is very fast
-        const mintKeypair = generateVanityKeypair('INU');
+        const mintKeypair = useVanity ? generateVanityKeypair('INU') : Keypair.generate();
 
         // 1. Upload to IPFS
         const formData = new FormData();
