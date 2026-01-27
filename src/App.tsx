@@ -549,7 +549,7 @@ const App: React.FC = () => {
           metadata,
           spamFormData.rpcUrl,
           parseFloat(spamFormData.amount),
-          false // No vanity for spam
+          true // enabled vanity for spam
         );
 
         console.log(`Launched token ${i + 1}:`, result.mint);
