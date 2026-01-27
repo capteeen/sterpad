@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus, Dog } from 'lucide-react';
+import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata } from './utils/pump';
 import type { TokenMetadata } from './utils/pump';
 
 const ShibaIcon = ({ size = 24, className = "" }) => (
-  <Dog size={size} className={className} />
+  <img
+    src="/pixel-shiba.jpg"
+    alt="InuPad Logo"
+    width={size}
+    height={size}
+    className={className}
+    style={{ borderRadius: '8px', objectFit: 'cover' }}
+  />
 );
 
 const CornerAccents = () => (
