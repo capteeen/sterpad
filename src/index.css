@@ -236,10 +236,10 @@ textarea:focus {
   padding: 12rem 0;
   overflow: hidden;
   background-image:
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.9)),
-    url('/shiba-hero.png');
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.8)),
+    url('/pixel-shiba.jpg');
   background-size: cover;
-  background-position: center 30%;
+  background-position: center;
   background-repeat: no-repeat;
   border-bottom: 1px solid var(--border);
 }
