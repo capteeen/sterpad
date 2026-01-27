@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Rocket, Wallet, Github, ExternalLink, Plus, Zap, Shield, Cpu, Activity, Star, Layers, Send, TrendingUp } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata } from './utils/pump';
+import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata, getTokensByWalletFromMoralis } from './utils/pump';
 import type { TokenMetadata } from './utils/pump';
 
 const ShibaIcon = ({ size = 24, className = "" }) => (
@@ -209,10 +209,22 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const [txUrl, setTxUrl] = useState<string | null>(null);
-  const [launchedTokens, setLaunchedTokens] = useState<{ name: string; symbol: string; mint: string; url: string; time: string }[]>(() => {
+  interface LaunchedToken {
+    name: string;
+    symbol: string;
+    description?: string;
+    image?: string;
+    logo?: string;
+    mint: string;
+    url: string;
+    time: string;
+  }
+  const [launchedTokens, setLaunchedTokens] = useState<LaunchedToken[]>(() => {
     const saved = localStorage.getItem('clawdinu_launches');
     return saved ? JSON.parse(saved) : [];
   });
+  const [discoveredTokens, setDiscoveredTokens] = useState<any[]>([]);
+  const [tokensLoading, setTokensLoading] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('clawdinu_launches', JSON.stringify(launchedTokens));
@@ -253,6 +265,28 @@ const App: React.FC = () => {
     const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setLogs(prev => [...prev, { type, message, time }]);
   };
+
+  useEffect(() => {
+    const fetchWalletTokens = async () => {
+      if (!activeWallet) {
+        setDiscoveredTokens([]);
+        return;
+      }
+      setTokensLoading(true);
+      try {
+        const tokens = await getTokensByWalletFromMoralis(activeWallet.address);
+        // Moralis response usually has a 'tokens' or similar array
+        setDiscoveredTokens(tokens || []);
+        addLog('info', `Syncing protocol: ${tokens?.length || 0} tokens discovered for wallet`);
+      } catch (err) {
+        console.error("Moralis sync failed:", err);
+        addLog('error', 'Moralis Protocol Sync Failed');
+      } finally {
+        setTokensLoading(false);
+      }
+    };
+    fetchWalletTokens();
+  }, [activeWalletIndex, wallets]);
 
   useEffect(() => {
     addLog('info', 'Clawdinu Protocol v1.0.4 Initialized');
@@ -410,6 +444,15 @@ const App: React.FC = () => {
     setTimeout(() => setStatus(null), 2000);
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleLaunch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageFile) {
@@ -448,9 +491,18 @@ const App: React.FC = () => {
       setStatus({ type: 'success', message: 'Successfully launched!' });
       setTxUrl(result.solscan);
 
+      let imageBase64 = '';
+      try {
+        imageBase64 = await fileToBase64(imageFile);
+      } catch (e) {
+        console.warn("Base64 conversion failed:", e);
+      }
+
       const newLaunch = {
         name: formData.name,
         symbol: formData.symbol,
+        description: formData.description,
+        image: imageBase64,
         mint: result.mint,
         url: result.solscan,
         time: new Date().toLocaleString()
@@ -502,9 +554,18 @@ const App: React.FC = () => {
 
         console.log(`Launched token ${i + 1}:`, result.mint);
 
+        let imageBase64 = '';
+        try {
+          imageBase64 = await fileToBase64(spamImageFile);
+        } catch (e) {
+          console.warn("Base64 conversion failed:", e);
+        }
+
         const newLaunch = {
           name: `${spamFormData.name} #${i + 1}`,
           symbol: `${spamFormData.symbol}${i + 1}`,
+          description: spamFormData.description,
+          image: imageBase64,
           mint: result.mint,
           url: result.solscan,
           time: new Date().toLocaleString()
@@ -563,7 +624,7 @@ const App: React.FC = () => {
                     <Github size={20} />
                     <span>GitHub</span>
                   </a>
-                  <a href="https://twitter.com" className="hero-social-link" target="_blank" rel="noreferrer">
+                  <a href="https://x.com/clawdinudotfun?s=21" className="hero-social-link" target="_blank" rel="noreferrer">
                     <span>X</span>
                   </a>
                 </div>
@@ -795,17 +856,36 @@ const App: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '300px', overflowY: 'auto' }}>
                     {launchedTokens.map((token, i) => (
-                      <div key={i} className="terminal-line" style={{ flexDirection: 'column', gap: '4px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                          <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{token.name} ({token.symbol})</span>
-                          <span style={{ fontSize: '0.7rem', color: '#555' }}>{token.time}</span>
+                      <div key={i} className="terminal-line" style={{ flexDirection: 'column', gap: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                          {(token.image || token.logo) && (
+                            <img
+                              src={token.image || token.logo}
+                              alt=""
+                              style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid var(--border)' }}
+                            />
+                          )}
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                              <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{token.name} ({token.symbol})</span>
+                              <span style={{ fontSize: '0.65rem', color: '#555' }}>{token.time}</span>
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', lineBreak: 'anywhere', maxHeight: '3em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                              {token.description}
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', wordBreak: 'break-all', padding: '4px 8px', background: 'rgba(0,0,0,0.3)', borderRadius: '4px' }}>
                           Mint: {token.mint}
                         </div>
-                        <a href={token.url} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          View on Solscan <ExternalLink size={10} />
-                        </a>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                          <a href={token.url} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            View Transaction <ExternalLink size={10} />
+                          </a>
+                          <a href={`https://pump.fun/${token.mint}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: '#4dff4d', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            Pump.fun <ExternalLink size={10} />
+                          </a>
+                        </div>
                       </div>
                     ))}
                     <button
@@ -818,6 +898,50 @@ const App: React.FC = () => {
                       Clear History
                     </button>
                   </div>
+                </motion.div>
+              )}
+
+              {/* Moralis Discovered Tokens */}
+              {activeWallet && (
+                <motion.div
+                  className="card"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <CornerAccents />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <Cpu style={{ color: 'var(--secondary)' }} />
+                    <h2 style={{ fontSize: '1.2rem' }}>Chain Discovery (Moralis)</h2>
+                  </div>
+
+                  {tokensLoading ? (
+                    <div className="terminal-line"><span className="terminal-info">Scanning blockchain via Moralis...</span></div>
+                  ) : discoveredTokens.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto' }}>
+                      {discoveredTokens.map((token, i) => (
+                        <div key={i} className="terminal-line" style={{ flexDirection: 'column', gap: '6px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {token.logo && <img src={token.logo} alt="" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />}
+                            <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{token.name} ({token.symbol})</span>
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                            Mint: {token.mint}
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px' }}>
+                            <a href={`https://solscan.io/token/${token.mint}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              Solscan <ExternalLink size={10} />
+                            </a>
+                            <a href={`https://pump.fun/${token.mint}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: '#4dff4d', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              Pump.fun <ExternalLink size={10} />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="terminal-line"><span className="terminal-muted">No tokens detected on-chain for this wallet.</span></div>
+                  )}
                 </motion.div>
               )}
             </div>
@@ -1164,6 +1288,14 @@ const App: React.FC = () => {
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
           &copy; 2026 Clawdinu. Built with paws and treats.
         </p>
+        <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
+          <a href="https://x.com/clawdinudotfun?s=21" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', transition: 'color 0.3s' }}>
+            <span onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}>X (Twitter)</span>
+          </a>
+          <a href="https://github.com/capteeen/clawdinu" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', transition: 'color 0.3s' }}>
+            <span onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}>GitHub</span>
+          </a>
+        </div>
       </footer>
     </div>
   );

@@ -34,6 +34,21 @@ export const getTokenMetadataFromMoralis = async (mintAddress: string) => {
     }
 };
 
+export const getTokensByWalletFromMoralis = async (walletAddress: string) => {
+    try {
+        const response = await axios.get(`https://solana-gateway.moralis.io/account/mainnet/${walletAddress}/tokens`, {
+            headers: {
+                'accept': 'application/json',
+                'X-API-Key': MORALIS_API_KEY
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching wallet tokens from Moralis:", error);
+        throw error;
+    }
+};
+
 export const fetchExternalMetadata = async (uri: string) => {
     try {
         let fetchUrl = uri;
