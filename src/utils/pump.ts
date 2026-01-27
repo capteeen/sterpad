@@ -16,6 +16,57 @@ export interface TokenMetadata {
     file: File;
 }
 
+const MORALIS_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6ImVjYzAxZDliLTdjYWItNDgzYy1hZDUzLTY4ZGMxMTkwZjZjNCIsIm9yZ0lkIjoiNDkyMTEiLCJ1c2VySWQiOiI0ODg3NiIsInR5cGVJZCI6IjUwMTgwNWE5LTVkNWEtNDI3OC1hMjE4LWIxNGFhYTU0OTljMCIsInR5cGUiOiJQUk9KRUNUIiwiaWF0IjoxNzQ0NTYzODI2LCJleHAiOjQ5MDAzMjM4MjZ9.XxbCVueyjps5wYAkl8AwuywxhBcw1xkieimSI_yOtfA";
+
+export const getTokenMetadataFromMoralis = async (mintAddress: string) => {
+    try {
+        const response = await axios.get(`https://solana-gateway.moralis.io/token/mainnet/${mintAddress}/metadata`, {
+            headers: {
+                'accept': 'application/json',
+                'X-API-Key': MORALIS_API_KEY
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching Moralis metadata:", error);
+        throw error;
+    }
+};
+
+export const fetchExternalMetadata = async (uri: string) => {
+    try {
+        let fetchUrl = uri;
+        if (uri.startsWith('ipfs://')) {
+            fetchUrl = `https://ipfs.io/ipfs/${uri.replace('ipfs://', '')}`;
+        }
+        const response = await axios.get(fetchUrl);
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching external metadata from URI:", error, uri);
+        return null;
+    }
+};
+
+export const getFileFromUrl = async (url: string, name: string): Promise<File> => {
+    try {
+        // Use an image proxy to bypass CORS restrictions
+        const proxiedUrl = `https://images.weserv.nl/?url=${encodeURIComponent(url)}&output=webp`;
+        const response = await axios.get(proxiedUrl, { responseType: 'blob' });
+
+        // Use the blob type from the response
+        const contentType = response.data.type || 'image/webp';
+        const extension = contentType.split('/')[1] || 'webp';
+
+        return new File([response.data], `${name}.${extension}`, { type: contentType });
+    } catch (error) {
+        console.error("Proxy download failed, trying direct fetch as fallback:", error);
+        // Fallback to direct fetch in case proxy is down
+        const response = await axios.get(url, { responseType: 'blob' });
+        const contentType = response.headers['content-type'] || 'image/png';
+        return new File([response.data], `${name}.${contentType.split('/')[1]}`, { type: contentType });
+    }
+};
+
 export const createWallet = async () => {
     try {
         const keypair = Keypair.generate();
@@ -29,6 +80,14 @@ export const createWallet = async () => {
     }
 };
 
+export const generateVanityKeypair = (suffix: string): Keypair => {
+    let keypair = Keypair.generate();
+    while (!keypair.publicKey.toBase58().toLowerCase().endsWith(suffix.toLowerCase())) {
+        keypair = Keypair.generate();
+    }
+    return keypair;
+};
+
 export const launchToken = async (
     signerPrivateKey: string,
     metadata: TokenMetadata,
@@ -39,7 +98,10 @@ export const launchToken = async (
 ) => {
     try {
         const signerKeypair = Keypair.fromSecretKey(bs58.decode(signerPrivateKey));
-        const mintKeypair = Keypair.generate();
+
+        // Use a vanity mint address for the Shiba theme
+        // Finding 'INU' is very fast
+        const mintKeypair = generateVanityKeypair('INU');
 
         // 1. Upload to IPFS
         const formData = new FormData();

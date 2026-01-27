@@ -1,31 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus } from 'lucide-react';
+import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus, Dog } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { createWallet, launchToken } from './utils/pump';
+import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata } from './utils/pump';
 import type { TokenMetadata } from './utils/pump';
 
-const LobsterIcon = ({ size = 24, className = "" }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    stroke="currentColor"
-    strokeWidth="2"
-    fill="none"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M12 12c-2 0-4 1.5-4 4s2 4 4 4 4-1.5 4-4-2-4-4-4Z" />
-    <path d="M12 12V4" />
-    <path d="M10 4h4" />
-    <path d="M4 10c0-2 2-4 4-4" />
-    <path d="M20 10c0-2-2-4-4-4" />
-    <path d="M7 21c0-2 1-3 2-4" />
-    <path d="M17 21c0-2-1-3-2-4" />
-  </svg>
+const ShibaIcon = ({ size = 24, className = "" }) => (
+  <Dog size={size} className={className} />
 );
 
 const CornerAccents = () => (
@@ -37,9 +19,35 @@ const CornerAccents = () => (
   </>
 );
 
+const LoadingOverlay: React.FC<{ message: string }> = ({ message }) => (
+  <motion.div
+    className="loader-overlay"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <div className="loader-container">
+      <div className="loader-ring" />
+      <div className="loader-ring-inner" />
+      <div className="loader-core" />
+    </div>
+    <div className="loader-text pulse">{message}</div>
+    <div className="tech-text" style={{ marginTop: '1rem', opacity: 0.5 }}>
+      Mining Inu-Vanity Protocol... Est Speed: 4.2 GH/s
+    </div>
+  </motion.div>
+);
+
 const App: React.FC = () => {
-  const [wallets, setWallets] = useState<{ address: string; privateKey: string }[]>([]);
+  const [wallets, setWallets] = useState<{ address: string; privateKey: string }[]>(() => {
+    const saved = localStorage.getItem('inupad_wallets');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [activeWalletIndex, setActiveWalletIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('inupad_wallets', JSON.stringify(wallets));
+  }, [wallets]);
   const [showImport, setShowImport] = useState(false);
   const [importKey, setImportKey] = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,9 +68,114 @@ const App: React.FC = () => {
     rpcUrl: 'https://api.mainnet-beta.solana.com'
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [vampAddress, setVampAddress] = useState('');
+  const [vampLoading, setVampLoading] = useState(false);
+
+  const handleVamp = async () => {
+    if (!vampAddress) return;
+    setVampLoading(true);
+    setLoading(true);
+    setStatus({ type: 'info', message: 'Executing Vamp Protocol: Extracting Metadata...' });
+
+    try {
+      const metadata = await getTokenMetadataFromMoralis(vampAddress);
+      console.log('Vamp Moralis Response:', metadata);
+
+      // Metaplex often stores data in a JSON file at a URI
+      const metaplex = metadata.metaplex || {};
+      let extData = metaplex.metadataUriData || {};
+      const targetUri = metaplex.metadataUri || metadata.uri || metadata.metadata_uri;
+
+      // If Moralis didn't pre-fetch the URI data, we do it manually
+      if ((!extData || Object.keys(extData).length === 0) && targetUri) {
+        setStatus({ type: 'info', message: 'Vamp Protocol: Resolving Metaplex URI...' });
+        const fetched = await fetchExternalMetadata(targetUri);
+        if (fetched) extData = fetched;
+      }
+
+      console.log('Vamp External Data:', extData);
+
+      // Exhaustive search for description across ALL sources
+      const rawDescription =
+        metadata.description ||
+        extData.description ||
+        extData.text ||
+        extData.about ||
+        extData.summary ||
+        extData.description_text ||
+        '';
+
+      const cleanDescription = (rawDescription || '').toString().trim();
+
+      // Multi-Source Social Scraper
+      const findLink = (keys: string[], ...sources: any[]) => {
+        for (const source of sources) {
+          if (!source) continue;
+          // Check root of source
+          for (const key of keys) {
+            if (source[key] && typeof source[key] === 'string') return source[key];
+          }
+          // Check extensions if exist
+          if (source.extensions) {
+            for (const key of keys) {
+              if (source.extensions[key] && typeof source.extensions[key] === 'string') return source.extensions[key];
+            }
+          }
+        }
+        return '';
+      };
+
+      const twitter = findLink(['twitter', 'twitter_url', 'x_url', 'x'], extData, metadata);
+      const telegram = findLink(['telegram', 'telegram_url', 'tg_url', 'tg'], extData, metadata);
+      const website = findLink(['website', 'external_url', 'external_link', 'url', 'site'], extData, metadata);
+
+      setFormData(prev => ({
+        ...prev,
+        name: metadata.name || extData.name || prev.name,
+        symbol: metadata.symbol || extData.symbol || prev.symbol,
+        description: cleanDescription || prev.description,
+        twitter: twitter || prev.twitter,
+        telegram: telegram || prev.telegram,
+        website: website || prev.website,
+      }));
+
+      const imageToDownload = metadata.logo || metadata.image || extData.image || extData.logo || extData.icon;
+      if (imageToDownload) {
+        setStatus({ type: 'info', message: 'Vamp Protocol: Downloading Assets...' });
+        try {
+          const file = await getFileFromUrl(imageToDownload, metadata.symbol || 'cloned');
+          setImageFile(file);
+        } catch (assetErr) {
+          console.warn("Could not download coin icon (CORS likely):", assetErr);
+          setStatus({ type: 'info', message: 'Vamp Successful: Metadata cloned, but icon blocked (CORS). Please upload manually.' });
+          await new Promise(r => setTimeout(r, 4000));
+          return;
+        }
+      }
+
+      setStatus({ type: 'success', message: 'Vamp Successful! Full protocol executed.' });
+      setVampAddress('');
+    } catch (err: any) {
+      console.error("Vamp Error Details:", err);
+      const errorMsg = err.response?.status === 404
+        ? "Token not found on Solana Mainnet"
+        : err.response?.status === 401
+          ? "Moralis API Key invalid or expired"
+          : err.message || "Unknown Vamp error";
+      setStatus({ type: 'error', message: `Vamp Failed: ${errorMsg}` });
+    } finally {
+      setVampLoading(false);
+      setLoading(false);
+    }
+  };
 
   const handleCreateWallet = async () => {
     setLoading(true);
+    setStatus({ type: 'info', message: 'Generating Secure Neural Keypair...' });
+
+    // Artificial delay to show the futuristic animation
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     try {
       const data = await createWallet();
       const newWallet = { address: data.walletPublickey, privateKey: data.privateKey };
@@ -77,8 +190,14 @@ const App: React.FC = () => {
     }
   };
 
-  const handleImportWallet = () => {
+  const handleImportWallet = async () => {
     if (!importKey) return;
+    setLoading(true);
+    setStatus({ type: 'info', message: 'Syncing External Wallet...' });
+
+    // Artificial delay for futuristic feel
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
     try {
       const keypair = Keypair.fromSecretKey(bs58.decode(importKey));
       const newWallet = { address: keypair.publicKey.toBase58(), privateKey: importKey };
@@ -90,6 +209,8 @@ const App: React.FC = () => {
       setStatus({ type: 'success', message: 'Wallet imported successfully!' });
     } catch (err) {
       setStatus({ type: 'error', message: 'Invalid private key format' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,7 +232,7 @@ const App: React.FC = () => {
     }
 
     setLoading(true);
-    setStatus({ type: 'info', message: 'Launching token on PumpFun...' });
+    setStatus({ type: 'info', message: 'Mining Inu-Vanity address & Launching...' });
 
     try {
       const metadata: TokenMetadata = {
@@ -142,52 +263,92 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      {loading && <LoadingOverlay message={status?.message || "Initializing Protocol..."} />}
       <div className="glow-overlay" />
       <div className="scan-line" />
-
       <div className="container">
         <nav className="navbar">
           <a href="#" className="logo">
-            <LobsterIcon className="lobster-glow" size={32} />
-            <span>LobsterPad</span>
+            <ShibaIcon className="shiba-glow" size={32} />
+            <span>InuPad</span>
           </a>
-
         </nav>
+      </div>
 
-        <main>
-          {/* Hero Section */}
-          <section className="hero" style={{ textAlign: 'center', marginBottom: '4rem', padding: '4rem 0', position: 'relative' }}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="tech-text" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>
-                Generation Protocol v1.0.4
-              </div>
-              <h1 style={{ fontSize: '5rem', marginBottom: '1rem', fontWeight: 700, letterSpacing: '-2px' }}>
-                Lobster <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>Pad</span>
-              </h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
-                the fastest, claws-on way to launch your memecoins.
-                Full metadata, IPFS storage, and dev-buy in one click.
-              </p>
+      <main>
+        {/* Hero Section - Full Width */}
+        <section className="hero">
+          <div className="container">
+            <div className="hero-content">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="tech-text" style={{ marginBottom: '1rem', color: 'var(--primary)' }}>
+                  Generation Protocol v1.0.4
+                </div>
+                <h1 style={{ fontSize: '5rem', marginBottom: '1rem', fontWeight: 700, letterSpacing: '-2px' }}>
+                  Inu <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>Pad</span>
+                </h1>
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
+                  the fastest, paws-on way to launch your memecoins.
+                  Full metadata, IPFS storage, and dev-buy in one click.
+                </p>
 
-              <div className="claude-badge">
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }} />
-                Supported by Claude AI
-              </div>
-            </motion.div>
+                <div className="claude-badge">
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }} />
+                  Supported by Claude AI
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
 
-            {/* Decorative Tech Elements */}
-            <div style={{ position: 'absolute', top: '10%', left: '5%', opacity: 0.2 }} className="tech-text">System.Ready</div>
-            <div style={{ position: 'absolute', bottom: '10%', right: '5%', opacity: 0.2 }} className="tech-text">Neural.Link.Active</div>
-          </section>
-
+        <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', alignItems: 'start' }}>
 
-            {/* Left Column: Wallet & Status */}
+            {/* Left Column: Wallet & Vamp */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+              {/* Vamp Protocol Card */}
+              <motion.div
+                className="card"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                style={{ border: '1px solid rgba(0, 242, 255, 0.2)' }}
+              >
+                <CornerAccents />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <Plus style={{ color: 'var(--secondary)' }} />
+                  <h2 style={{ fontSize: '1.5rem' }}>Vamp Protocol</h2>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
+                  Paste a contract address to clone its metadata and launch it as your own.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="input-group" style={{ marginBottom: 0 }}>
+                    <input
+                      placeholder="Solana Contract Address"
+                      value={vampAddress}
+                      onChange={(e) => setVampAddress(e.target.value)}
+                      style={{ fontSize: '0.8rem', borderColor: 'rgba(0, 242, 255, 0.2)' }}
+                    />
+                  </div>
+                  <button
+                    className="btn-outline"
+                    style={{
+                      borderColor: 'var(--secondary)',
+                      color: 'var(--secondary)',
+                      background: 'rgba(0, 242, 255, 0.05)'
+                    }}
+                    onClick={handleVamp}
+                    disabled={vampLoading || !vampAddress}
+                  >
+                    {vampLoading ? 'EXTRACTING...' : 'EXECUTE VAMP'}
+                  </button>
+                </div>
+              </motion.div>
 
               <motion.div
                 className="card"
@@ -217,6 +378,20 @@ const App: React.FC = () => {
                   >
                     Import
                   </button>
+                  {wallets.length > 0 && (
+                    <button
+                      className="btn-outline"
+                      style={{ fontSize: '0.8rem', padding: '0.6rem', color: '#ff4d4d' }}
+                      onClick={() => {
+                        if (confirm('Clear all stored wallets?')) {
+                          setWallets([]);
+                          setActiveWalletIndex(null);
+                        }
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
 
                 {showImport && (
@@ -337,7 +512,7 @@ const App: React.FC = () => {
                   <div className="input-group">
                     <label>Token Name</label>
                     <input
-                      placeholder="e.g. Lobster King"
+                      placeholder="e.g. Shiba King"
                       value={formData.name}
                       onChange={e => setFormData({ ...formData, name: e.target.value })}
                       required
@@ -346,7 +521,7 @@ const App: React.FC = () => {
                   <div className="input-group">
                     <label>Symbol</label>
                     <input
-                      placeholder="e.g. LOBSTR"
+                      placeholder="e.g. SHIBA"
                       value={formData.symbol}
                       onChange={e => setFormData({ ...formData, symbol: e.target.value })}
                       required
@@ -358,7 +533,7 @@ const App: React.FC = () => {
                   <label>Description</label>
                   <textarea
                     rows={3}
-                    placeholder="Tell the world about your lobster..."
+                    placeholder="Tell the world about your Shiba..."
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                     required
@@ -448,23 +623,23 @@ const App: React.FC = () => {
                   style={{ width: '100%', marginTop: '1rem', height: '3.5rem', fontSize: '1.1rem' }}
                   disabled={loading}
                 >
-                  {loading ? 'Processing...' : 'LAUNCH CLAWS FIRST'}
+                  {loading ? 'Processing...' : 'LAUNCH PAWS FIRST'}
                 </button>
               </form>
             </motion.div>
           </div>
-        </main>
+        </div>
+      </main>
 
-        <footer style={{ marginTop: '8rem', paddingBottom: '4rem', textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2rem' }}>
-            <a href="https://github.com" style={{ color: 'var(--text-muted)' }}><Github size={20} /></a>
-            <a href="https://twitter.com" style={{ color: 'var(--text-muted)' }}><Twitter size={20} /></a>
-          </div>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-            &copy; 2026 LobsterPad. Built with claws and coffee.
-          </p>
-        </footer>
-      </div>
+      <footer style={{ marginTop: '8rem', paddingBottom: '4rem', textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2rem' }}>
+          <a href="https://github.com/capteeen/lobsterpad" style={{ color: 'var(--text-muted)' }} target="_blank" rel="noreferrer"><Github size={20} /></a>
+          <a href="https://twitter.com" style={{ color: 'var(--text-muted)' }}><Twitter size={20} /></a>
+        </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+          &copy; 2026 InuPad. Built with paws and treats.
+        </p>
+      </footer>
     </div>
   );
 };
