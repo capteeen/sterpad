@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus, Zap, Shield, Cpu, Activity } from 'lucide-react';
+import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus, Zap, Shield, Cpu, Activity, Star, Layers, Send, TrendingUp } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata } from './utils/pump';
@@ -82,6 +82,109 @@ const TerminalLog: React.FC<{ logs: { type: string, message: string, time: strin
     </div>
   );
 };
+
+const FloatingBackground = () => (
+  <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+    {[...Array(6)].map((_, i) => (
+      <img
+        key={i}
+        src="/pixel-shiba.jpg"
+        className="floating-shiba"
+        style={{
+          top: `${Math.random() * 100}%`,
+          left: `${Math.random() * 100}%`,
+          width: `${30 + Math.random() * 50}px`,
+          animationDelay: `${i * -5}s`,
+          animationDuration: `${15 + Math.random() * 10}s`
+        }}
+        alt=""
+      />
+    ))}
+  </div>
+);
+
+const Roadmap = () => (
+  <section style={{ marginTop: '10rem' }}>
+    <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+      <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>Development <span style={{ color: 'var(--primary)' }}>Orbit</span></h2>
+      <p style={{ color: 'var(--text-muted)' }}>Our trajectory for the Shiba ecosystem.</p>
+    </div>
+
+    <div className="roadmap-container">
+      <div className="roadmap-line" />
+
+      {[
+        { phase: 'Phase 1', title: 'Neural Genesis', items: ['Vamp Protocol refinement', 'Spam deployment engine', 'Shiba branding pack'], status: 'Active' },
+        { phase: 'Phase 2', title: 'Alpha Pack', items: ['Multi-wallet bundle buys', 'Sniper protection layers', 'Advanced metadata locking'], status: 'Pending' },
+        { phase: 'Phase 3', title: 'Global Barker', items: ['Social media bot integration', 'One-click DEX listing', 'Liquidity migration tools'], status: 'Future' },
+        { phase: 'Phase 4', title: 'Inu Metaverse', items: ['Cross-chain deployment', 'Governance token launch', 'Institutional fund portal'], status: 'Future' }
+      ].map((item, i) => (
+        <motion.div
+          key={i}
+          className="roadmap-item"
+          initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: i * 0.1 }}
+        >
+          <div className="roadmap-content">
+            <span className="roadmap-tag">{item.phase}</span>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>{item.title}</h3>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {item.items.map((li, j) => (
+                <li key={j} style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '4px', height: '4px', background: 'var(--primary)', borderRadius: '50%' }} />
+                  {li}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="roadmap-dot" />
+        </motion.div>
+      ))}
+    </div>
+  </section>
+);
+
+const UtilitySection = () => (
+  <section style={{ marginTop: '10rem' }}>
+    <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+      <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>InuPad <span style={{ color: 'var(--primary)' }}>Utility</span></h2>
+      <p style={{ color: 'var(--text-muted)' }}>Why Shibas trust our protocol for their missions.</p>
+    </div>
+
+    <div className="utility-grid">
+      <div className="utility-card">
+        <Star style={{ color: 'var(--primary)', marginBottom: '1.5rem' }} />
+        <h3 style={{ marginBottom: '1rem' }}>Premium Metadata</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          Fully compliant Metaplex metadata uploads. High-res imagery support and IPFS persistence.
+        </p>
+      </div>
+      <div className="utility-card">
+        <Layers style={{ color: 'var(--primary)', marginBottom: '1.5rem' }} />
+        <h3 style={{ marginBottom: '1rem' }}>Bundle Support</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          Simultaneously mint and buy your own tokens to establish a floor and show confidence to the pack.
+        </p>
+      </div>
+      <div className="utility-card">
+        <Send style={{ color: 'var(--primary)', marginBottom: '1.5rem' }} />
+        <h3 style={{ marginBottom: '1rem' }}>Social Integration</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          Direct links to Twitter, Telegram, and Websites baked into the contract for instant credibility.
+        </p>
+      </div>
+      <div className="utility-card">
+        <TrendingUp style={{ color: 'var(--primary)', marginBottom: '1.5rem' }} />
+        <h3 style={{ marginBottom: '1rem' }}>Analytics Ready</h3>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+          Clean contract structures that play nice with Birdeye, DexScreener, and more.
+        </p>
+      </div>
+    </div>
+  </section>
+);
 
 const App: React.FC = () => {
   const [wallets, setWallets] = useState<{ address: string; privateKey: string }[]>(() => {
@@ -386,6 +489,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      <FloatingBackground />
       <TickerBar />
       {loading && <LoadingOverlay message={status?.message || "Initializing Protocol..."} />}
       <div className="glow-overlay" />
@@ -897,6 +1001,10 @@ const App: React.FC = () => {
               </motion.div>
             </div>
           </div>
+
+          <UtilitySection />
+
+          <Roadmap />
 
           {/* Features Section */}
           <section className="feature-grid">
