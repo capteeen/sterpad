@@ -199,7 +199,18 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('inuclawd_wallets');
     return saved ? JSON.parse(saved) : [];
   });
-  const [activeWalletIndex, setActiveWalletIndex] = useState<number | null>(null);
+  const [activeWalletIndex, setActiveWalletIndex] = useState<number | null>(() => {
+    const saved = localStorage.getItem('inuclawd_active_wallet');
+    return saved !== null ? parseInt(saved) : null;
+  });
+
+  useEffect(() => {
+    if (activeWalletIndex !== null) {
+      localStorage.setItem('inuclawd_active_wallet', activeWalletIndex.toString());
+    } else {
+      localStorage.removeItem('inuclawd_active_wallet');
+    }
+  }, [activeWalletIndex]);
 
   useEffect(() => {
     localStorage.setItem('inuclawd_wallets', JSON.stringify(wallets));
@@ -259,11 +270,18 @@ const App: React.FC = () => {
     rpcUrl: 'https://mainnet.helius-rpc.com/?api-key=0a3ce19e-f73c-4bf7-b1e0-2122850bfff0'
   });
   const [spamImageFile, setSpamImageFile] = useState<File | null>(null);
-  const [logs, setLogs] = useState<{ type: string, message: string, time: string }[]>([]);
+  const [logs, setLogs] = useState<{ type: string, message: string, time: string }[]>(() => {
+    const saved = localStorage.getItem('inuclawd_logs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('inuclawd_logs', JSON.stringify(logs.slice(-100))); // Persist last 100 logs
+  }, [logs]);
 
   const addLog = (type: string, message: string) => {
     const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setLogs(prev => [...prev, { type, message, time }]);
+    setLogs(prev => [...prev.slice(-99), { type, message, time }]);
   };
 
   useEffect(() => {
@@ -912,11 +930,11 @@ const App: React.FC = () => {
                   <CornerAccents />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
                     <Cpu style={{ color: 'var(--secondary)' }} />
-                    <h2 style={{ fontSize: '1.2rem' }}>Chain Discovery (Moralis)</h2>
+                    <h2 style={{ fontSize: '1.2rem' }}>Chain Discovery</h2>
                   </div>
 
                   {tokensLoading ? (
-                    <div className="terminal-line"><span className="terminal-info">Scanning blockchain via Moralis...</span></div>
+                    <div className="terminal-line"><span className="terminal-info">Scanning blockchain...</span></div>
                   ) : discoveredTokens.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto' }}>
                       {discoveredTokens.map((token, i) => (
