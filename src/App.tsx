@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus } from 'lucide-react';
+import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus, Zap, Shield, Cpu, Activity } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata } from './utils/pump';
@@ -44,6 +44,44 @@ const LoadingOverlay: React.FC<{ message: string }> = ({ message }) => (
     </div>
   </motion.div>
 );
+
+const TickerBar = () => (
+  <div className="ticker-wrap">
+    <div className="ticker">
+      {[...Array(2)].map((_, i) => (
+        <React.Fragment key={i}>
+          <div className="ticker-item">NEW LAUNCH: <span>$SHIBALORD</span> deployed 2m ago</div>
+          <div className="ticker-item">VAMP STATUS: <span>SUCCESS</span> cloned $PEPE_INU</div>
+          <div className="ticker-item">NETWORK: <span>SOLANA MAINNET</span> 2840 TPS</div>
+          <div className="ticker-item">VOLUME: <span>4,209 SOL</span> last 24h</div>
+          <div className="ticker-item">SPAM PROTOCOL: <span>ACTIVE</span> 12 instances</div>
+        </React.Fragment>
+      ))}
+    </div>
+  </div>
+);
+
+const TerminalLog: React.FC<{ logs: { type: string, message: string, time: string }[] }> = ({ logs }) => {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  return (
+    <div className="terminal-card" ref={scrollRef}>
+      {logs.map((log, i) => (
+        <div key={i} className="terminal-line">
+          <span className="terminal-timestamp">[{log.time}]</span>
+          <span className={`terminal-${log.type}`}>{log.message}</span>
+        </div>
+      ))}
+      {logs.length === 0 && <div className="terminal-line"><span className="terminal-info">Waiting for incoming protocol requests...</span></div>}
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   const [wallets, setWallets] = useState<{ address: string; privateKey: string }[]>(() => {
@@ -90,6 +128,17 @@ const App: React.FC = () => {
     rpcUrl: 'https://api.mainnet-beta.solana.com'
   });
   const [spamImageFile, setSpamImageFile] = useState<File | null>(null);
+  const [logs, setLogs] = useState<{ type: string, message: string, time: string }[]>([]);
+
+  const addLog = (type: string, message: string) => {
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setLogs(prev => [...prev, { type, message, time }]);
+  };
+
+  useEffect(() => {
+    addLog('info', 'InuPad Protocol v1.0.4 Initialized');
+    addLog('info', 'Secure Wallet Sync active');
+  }, []);
 
   const handleVamp = async () => {
     if (!vampAddress) return;
@@ -97,8 +146,10 @@ const App: React.FC = () => {
     setLoading(true);
     setStatus({ type: 'info', message: 'Executing Vamp Protocol: Extracting Metadata...' });
 
+    addLog('warning', `Vamp Protocol: Targeting ${vampAddress}`);
     try {
       const metadata = await getTokenMetadataFromMoralis(vampAddress);
+      addLog('info', `Metadata fetched for ${metadata.name}`);
       console.log('Vamp Moralis Response:', metadata);
 
       // Metaplex often stores data in a JSON file at a URI
@@ -254,6 +305,7 @@ const App: React.FC = () => {
     setLoading(true);
     setStatus({ type: 'info', message: 'Mining Inu-Vanity address & Launching...' });
 
+    addLog('info', `Deploying ${formData.name} (${formData.symbol})...`);
     try {
       const metadata: TokenMetadata = {
         name: formData.name,
@@ -273,6 +325,7 @@ const App: React.FC = () => {
         true // useVanity
       );
 
+      addLog('success', `Launch Successful! Mint: ${result.mint}`);
       setStatus({ type: 'success', message: 'Successfully launched!' });
       setTxUrl(result.solscan);
     } catch (err: any) {
@@ -333,6 +386,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
+      <TickerBar />
       {loading && <LoadingOverlay message={status?.message || "Initializing Protocol..."} />}
       <div className="glow-overlay" />
       <div className="scan-line" />
@@ -562,6 +616,21 @@ const App: React.FC = () => {
                   )}
                 </motion.div>
               )}
+
+              {/* Terminal Logs Card */}
+              <motion.div
+                className="card"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <CornerAccents />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <Activity style={{ color: 'var(--primary)' }} />
+                  <h2 style={{ fontSize: '1.2rem' }}>Protocol Logs</h2>
+                </div>
+                <TerminalLog logs={logs} />
+              </motion.div>
             </div>
 
             {/* Right Column: Launch Form */}
@@ -828,6 +897,73 @@ const App: React.FC = () => {
               </motion.div>
             </div>
           </div>
+
+          {/* Features Section */}
+          <section className="feature-grid">
+            <motion.div
+              className="feature-card"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="feature-icon"><Zap size={32} /></div>
+              <h3>Ultra-Sonic Launch</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                Deploy tokens to Pump.fun in milleseconds. Our optimized protocol ensures you're first to the party.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="feature-card"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              <div className="feature-icon"><Shield size={32} /></div>
+              <h3>Paws-Locked Security</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                Local keypair storage only. Your private keys never leave your browser. Secure, audited, and paws-on.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="feature-card"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="feature-icon"><Cpu size={32} /></div>
+              <h3>Neural Vanity Protocol</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                Automatically mine custom contract addresses ending in 'INU' for maximum meme aesthetic and clout.
+              </p>
+            </motion.div>
+          </section>
+
+          {/* New CTA Section */}
+          <motion.section
+            style={{
+              marginTop: '8rem',
+              padding: '6rem',
+              borderRadius: '40px',
+              background: 'radial-gradient(circle at top right, rgba(245, 166, 35, 0.1), transparent)',
+              border: '1px solid var(--border)',
+              textAlign: 'center'
+            }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+          >
+            <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>Ready to Take the <span style={{ color: 'var(--primary)' }}>Lead?</span></h2>
+            <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
+              Join thousands of shibas deploying the next generation of tokens on Solana.
+            </p>
+            <button className="btn-primary" onClick={() => window.scrollTo({ top: 500, behavior: 'smooth' })}>
+              Start Deploying Now
+            </button>
+          </motion.section>
         </div>
       </main>
 

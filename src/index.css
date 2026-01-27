@@ -115,6 +115,119 @@ h3,
   }
 }
 
+.ticker-wrap {
+  width: 100%;
+  overflow: hidden;
+  background: rgba(245, 166, 35, 0.05);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+  position: relative;
+  z-index: 10;
+}
+
+.ticker {
+  display: flex;
+  white-space: nowrap;
+  animation: ticker 30s linear infinite;
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 40px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.ticker-item span {
+  color: var(--primary);
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.terminal-card {
+  background: #050505;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem;
+  height: 200px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.terminal-line {
+  margin-bottom: 6px;
+  line-height: 1.4;
+  display: flex;
+  gap: 10px;
+}
+
+.terminal-timestamp {
+  color: #555;
+}
+
+.terminal-info {
+  color: #4d94ff;
+}
+
+.terminal-success {
+  color: #4dff4d;
+}
+
+.terminal-warning {
+  color: #ffcc33;
+}
+
+.terminal-error {
+  color: #ff4d4d;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 6rem;
+}
+
+.feature-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 3rem 2rem;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(245, 166, 35, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+}
+
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(245, 166, 35, 0.1);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: var(--primary);
+}
+
 .claude-badge {
   display: inline-flex;
   align-items: center;
