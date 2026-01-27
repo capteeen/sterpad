@@ -620,7 +620,7 @@ const App: React.FC = () => {
                 </p>
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                  <a href="https://github.com/capteeen/clawdinu" className="hero-social-link" target="_blank" rel="noreferrer">
+                  <a href="https://github.com/capteeen/clawdinuDOTFUN" className="hero-social-link" target="_blank" rel="noreferrer">
                     <Github size={20} />
                     <span>GitHub</span>
                   </a>
@@ -1292,7 +1292,7 @@ const App: React.FC = () => {
           <a href="https://x.com/clawdinudotfun?s=21" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', transition: 'color 0.3s' }}>
             <span onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}>X (Twitter)</span>
           </a>
-          <a href="https://github.com/capteeen/clawdinu" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', transition: 'color 0.3s' }}>
+          <a href="https://github.com/capteeen/clawdinuDOTFUN" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', transition: 'color 0.3s' }}>
             <span onMouseEnter={(e) => e.currentTarget.style.color = 'var(--primary)'} onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}>GitHub</span>
           </a>
         </div>
