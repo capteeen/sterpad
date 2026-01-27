@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Wallet, Github, Twitter, ExternalLink, Plus, Zap, Shield, Cpu, Activity, Star, Layers, Send, TrendingUp } from 'lucide-react';
+import { Rocket, Wallet, Github, ExternalLink, Plus, Zap, Shield, Cpu, Activity, Star, Layers, Send, TrendingUp } from 'lucide-react';
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata } from './utils/pump';
@@ -531,6 +531,16 @@ const App: React.FC = () => {
                   the fastest, paws-on way to launch your memecoins.
                   Full metadata, IPFS storage, and dev-buy in one click.
                 </p>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+                  <a href="https://github.com/capteeen/lobsterpad" className="hero-social-link" target="_blank" rel="noreferrer">
+                    <Github size={20} />
+                    <span>GitHub</span>
+                  </a>
+                  <a href="https://twitter.com" className="hero-social-link" target="_blank" rel="noreferrer">
+                    <span>X</span>
+                  </a>
+                </div>
 
                 <div className="claude-badge">
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }} />
@@ -1084,10 +1094,6 @@ const App: React.FC = () => {
       </main>
 
       <footer style={{ marginTop: '8rem', paddingBottom: '4rem', textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '2rem' }}>
-          <a href="https://github.com/capteeen/lobsterpad" style={{ color: 'var(--text-muted)' }} target="_blank" rel="noreferrer"><Github size={20} /></a>
-          <a href="https://twitter.com" style={{ color: 'var(--text-muted)' }}><Twitter size={20} /></a>
-        </div>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
           &copy; 2026 InuPad. Built with paws and treats.
         </p>
