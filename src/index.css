@@ -6,7 +6,7 @@
   --primary: #f5a623;
   --primary-glow: rgba(245, 166, 35, 0.4);
   --secondary: #ffcc33;
-  /* Shiba Gold */
+  /* Clawdinu Gold */
   --secondary-glow: rgba(255, 204, 51, 0.4);
   --text-main: #ffffff;
   --text-muted: #888888;
@@ -17,7 +17,7 @@
   --roadmap-line: rgba(245, 166, 35, 0.2);
 }
 
-.floating-shiba {
+.floating-clawdinu {
   position: absolute;
   pointer-events: none;
   opacity: 0.1;
@@ -525,7 +525,7 @@ textarea:focus {
   text-decoration: none;
 }
 
-.shiba-glow {
+.clawdinu-glow {
   filter: drop-shadow(0 0 10px var(--primary-glow));
 }
 

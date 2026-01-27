@@ -9,7 +9,7 @@ import type { TokenMetadata } from './utils/pump';
 const ShibaIcon = ({ size = 24, className = "" }) => (
   <img
     src="/buff-doge.png"
-    alt="InuPad Logo"
+    alt="Clawdinu Logo"
     width={size}
     height={size}
     className={className}
@@ -40,7 +40,7 @@ const LoadingOverlay: React.FC<{ message: string }> = ({ message }) => (
     </div>
     <div className="loader-text pulse">{message}</div>
     <div className="tech-text" style={{ marginTop: '1rem', opacity: 0.5 }}>
-      Mining Inu-Vanity Protocol... Est Speed: 4.2 GH/s
+      Mining Clawdinu-Vanity Protocol... Est Speed: 4.2 GH/s
     </div>
   </motion.div>
 );
@@ -115,7 +115,7 @@ const Roadmap = () => (
   <section style={{ marginTop: '10rem' }}>
     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
       <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>Development <span style={{ color: 'var(--primary)' }}>Orbit</span></h2>
-      <p style={{ color: 'var(--text-muted)' }}>Our trajectory for the Shiba ecosystem.</p>
+      <p style={{ color: 'var(--text-muted)' }}>Our trajectory for the Clawdinu ecosystem.</p>
     </div>
 
     <div className="roadmap-container">
@@ -125,7 +125,7 @@ const Roadmap = () => (
         { phase: 'Phase 1', title: 'Neural Genesis', items: ['Vamp Protocol refinement', 'Spam deployment engine', 'Shiba branding pack'], status: 'Active' },
         { phase: 'Phase 2', title: 'Alpha Pack', items: ['Multi-wallet bundle buys', 'Sniper protection layers', 'Advanced metadata locking'], status: 'Pending' },
         { phase: 'Phase 3', title: 'Global Barker', items: ['Social media bot integration', 'One-click DEX listing', 'Liquidity migration tools'], status: 'Future' },
-        { phase: 'Phase 4', title: 'Inu Metaverse', items: ['Cross-chain deployment', 'Governance token launch', 'Institutional fund portal'], status: 'Future' }
+        { phase: 'Phase 4', title: 'Clawd Metaverse', items: ['Cross-chain deployment', 'Governance token launch', 'Institutional fund portal'], status: 'Future' }
       ].map((item, i) => (
         <motion.div
           key={i}
@@ -157,7 +157,7 @@ const Roadmap = () => (
 const UtilitySection = () => (
   <section style={{ marginTop: '10rem' }}>
     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-      <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>InuPad <span style={{ color: 'var(--primary)' }}>Utility</span></h2>
+      <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>Clawdinu <span style={{ color: 'var(--primary)' }}>Utility</span></h2>
       <p style={{ color: 'var(--text-muted)' }}>Why Shibas trust our protocol for their missions.</p>
     </div>
 
@@ -196,19 +196,27 @@ const UtilitySection = () => (
 
 const App: React.FC = () => {
   const [wallets, setWallets] = useState<{ address: string; privateKey: string }[]>(() => {
-    const saved = localStorage.getItem('inupad_wallets');
+    const saved = localStorage.getItem('clawdinu_wallets');
     return saved ? JSON.parse(saved) : [];
   });
   const [activeWalletIndex, setActiveWalletIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('inupad_wallets', JSON.stringify(wallets));
+    localStorage.setItem('clawdinu_wallets', JSON.stringify(wallets));
   }, [wallets]);
   const [showImport, setShowImport] = useState(false);
   const [importKey, setImportKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
   const [txUrl, setTxUrl] = useState<string | null>(null);
+  const [launchedTokens, setLaunchedTokens] = useState<{ name: string; symbol: string; mint: string; url: string; time: string }[]>(() => {
+    const saved = localStorage.getItem('clawdinu_launches');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('clawdinu_launches', JSON.stringify(launchedTokens));
+  }, [launchedTokens]);
 
   const activeWallet = activeWalletIndex !== null ? wallets[activeWalletIndex] : null;
 
@@ -221,7 +229,7 @@ const App: React.FC = () => {
     website: '',
     amount: '0.01',
     privateKey: '',
-    rpcUrl: 'https://api.mainnet-beta.solana.com'
+    rpcUrl: 'https://mainnet.helius-rpc.com/?api-key=0a3ce19e-f73c-4bf7-b1e0-2122850bfff0'
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [vampAddress, setVampAddress] = useState('');
@@ -236,7 +244,7 @@ const App: React.FC = () => {
     telegram: '',
     website: '',
     amount: '0.01',
-    rpcUrl: 'https://api.mainnet-beta.solana.com'
+    rpcUrl: 'https://mainnet.helius-rpc.com/?api-key=0a3ce19e-f73c-4bf7-b1e0-2122850bfff0'
   });
   const [spamImageFile, setSpamImageFile] = useState<File | null>(null);
   const [logs, setLogs] = useState<{ type: string, message: string, time: string }[]>([]);
@@ -247,7 +255,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    addLog('info', 'InuPad Protocol v1.0.4 Initialized');
+    addLog('info', 'Clawdinu Protocol v1.0.4 Initialized');
     addLog('info', 'Secure Wallet Sync active');
   }, []);
 
@@ -414,7 +422,7 @@ const App: React.FC = () => {
     }
 
     setLoading(true);
-    setStatus({ type: 'info', message: 'Mining Inu-Vanity address & Launching...' });
+    setStatus({ type: 'info', message: 'Mining Clawdinu-Vanity address & Launching...' });
 
     addLog('info', `Deploying ${formData.name} (${formData.symbol})...`);
     try {
@@ -439,6 +447,15 @@ const App: React.FC = () => {
       addLog('success', `Launch Successful! Mint: ${result.mint}`);
       setStatus({ type: 'success', message: 'Successfully launched!' });
       setTxUrl(result.solscan);
+
+      const newLaunch = {
+        name: formData.name,
+        symbol: formData.symbol,
+        mint: result.mint,
+        url: result.solscan,
+        time: new Date().toLocaleString()
+      };
+      setLaunchedTokens(prev => [newLaunch, ...prev]);
     } catch (err: any) {
       setStatus({ type: 'error', message: `Launch failed: ${err.message}` });
     } finally {
@@ -484,6 +501,15 @@ const App: React.FC = () => {
         );
 
         console.log(`Launched token ${i + 1}:`, result.mint);
+
+        const newLaunch = {
+          name: `${spamFormData.name} #${i + 1}`,
+          symbol: `${spamFormData.symbol}${i + 1}`,
+          mint: result.mint,
+          url: result.solscan,
+          time: new Date().toLocaleString()
+        };
+        setLaunchedTokens(prev => [newLaunch, ...prev]);
       }
 
       setStatus({ type: 'success', message: `Spam Launch Successful! ${spamCount} tokens deployed.` });
@@ -505,8 +531,8 @@ const App: React.FC = () => {
       <div className="container">
         <nav className="navbar">
           <a href="#" className="logo">
-            <ShibaIcon className="shiba-glow" size={32} />
-            <span>InuPad</span>
+            <ShibaIcon className="clawdinu-glow" size={32} />
+            <span>Clawdinu</span>
           </a>
         </nav>
       </div>
@@ -525,7 +551,7 @@ const App: React.FC = () => {
                   Generation Protocol v1.0.4
                 </div>
                 <h1 style={{ fontSize: '5rem', marginBottom: '1rem', fontWeight: 700, letterSpacing: '-2px' }}>
-                  Inu <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>Pad</span>
+                  Clawd <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>Inu</span>
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
                   the fastest, paws-on way to launch your memecoins.
@@ -533,7 +559,7 @@ const App: React.FC = () => {
                 </p>
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
-                  <a href="https://github.com/capteeen/lobsterpad" className="hero-social-link" target="_blank" rel="noreferrer">
+                  <a href="https://github.com/capteeen/clawdinu" className="hero-social-link" target="_blank" rel="noreferrer">
                     <Github size={20} />
                     <span>GitHub</span>
                   </a>
@@ -753,6 +779,47 @@ const App: React.FC = () => {
                 </div>
                 <TerminalLog logs={logs} />
               </motion.div>
+
+              {/* Launch History Card */}
+              {launchedTokens.length > 0 && (
+                <motion.div
+                  className="card"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <CornerAccents />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <TrendingUp style={{ color: 'var(--primary)' }} />
+                    <h2 style={{ fontSize: '1.2rem' }}>Launch History</h2>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '300px', overflowY: 'auto' }}>
+                    {launchedTokens.map((token, i) => (
+                      <div key={i} className="terminal-line" style={{ flexDirection: 'column', gap: '4px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                          <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{token.name} ({token.symbol})</span>
+                          <span style={{ fontSize: '0.7rem', color: '#555' }}>{token.time}</span>
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                          Mint: {token.mint}
+                        </div>
+                        <a href={token.url} target="_blank" rel="noreferrer" style={{ fontSize: '0.7rem', color: 'var(--secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          View on Solscan <ExternalLink size={10} />
+                        </a>
+                      </div>
+                    ))}
+                    <button
+                      className="btn-outline"
+                      style={{ fontSize: '0.7rem', padding: '0.4rem', marginTop: '0.5rem', color: '#ff4d4d' }}
+                      onClick={() => {
+                        if (confirm('Clear launch history?')) setLaunchedTokens([]);
+                      }}
+                    >
+                      Clear History
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* Right Column: Launch Form */}
@@ -991,7 +1058,7 @@ const App: React.FC = () => {
                       />
                     </div>
                     <div className="input-group">
-                      <label>Dev Buy per Token (SOL)</label>
+                      <label>Dev Buy (SOL)</label>
                       <input
                         type="number"
                         step="0.01"
@@ -1095,7 +1162,7 @@ const App: React.FC = () => {
 
       <footer style={{ marginTop: '8rem', paddingBottom: '4rem', textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-          &copy; 2026 InuPad. Built with paws and treats.
+          &copy; 2026 Clawdinu. Built with paws and treats.
         </p>
       </footer>
     </div>
