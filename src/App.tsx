@@ -1170,6 +1170,33 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                    <div className="input-group">
+                      <label>X/Twitter (Optional)</label>
+                      <input
+                        placeholder="link"
+                        value={spamFormData.twitter}
+                        onChange={e => setSpamFormData({ ...spamFormData, twitter: e.target.value })}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Telegram (Optional)</label>
+                      <input
+                        placeholder="link"
+                        value={spamFormData.telegram}
+                        onChange={e => setSpamFormData({ ...spamFormData, telegram: e.target.value })}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Website (Optional)</label>
+                      <input
+                        placeholder="link"
+                        value={spamFormData.website}
+                        onChange={e => setSpamFormData({ ...spamFormData, website: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
                     <div className="input-group">
                       <label>Tokens to Launch</label>
