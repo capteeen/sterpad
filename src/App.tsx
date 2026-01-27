@@ -8,12 +8,12 @@ import type { TokenMetadata } from './utils/pump';
 
 const ShibaIcon = ({ size = 24, className = "" }) => (
   <img
-    src="/pixel-shiba.jpg"
+    src="/buff-doge.png"
     alt="InuPad Logo"
     width={size}
     height={size}
     className={className}
-    style={{ borderRadius: '8px', objectFit: 'cover' }}
+    style={{ borderRadius: '8px', objectFit: 'contain' }}
   />
 );
 
@@ -83,23 +83,31 @@ const TerminalLog: React.FC<{ logs: { type: string, message: string, time: strin
   );
 };
 
-const FloatingBackground = () => (
-  <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-    {[...Array(6)].map((_, i) => (
-      <img
-        key={i}
-        src="/pixel-shiba.jpg"
-        className="floating-shiba"
-        style={{
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
-          width: `${30 + Math.random() * 50}px`,
-          animationDelay: `${i * -5}s`,
-          animationDuration: `${15 + Math.random() * 10}s`
-        }}
-        alt=""
-      />
-    ))}
+const FloatingDoge = () => (
+  <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <motion.img
+      src="/buff-doge.png"
+      style={{
+        width: '600px',
+        height: '600px',
+        opacity: 0.1,
+        filter: 'drop-shadow(0 0 80px var(--primary-glow)) blur(2px)',
+      }}
+      animate={{
+        rotate: [0, 45, -45, 180, 0, 360],
+        rotateX: [0, 20, -20, 0],
+        rotateY: [0, -20, 20, 0],
+        scale: [1, 1.1, 0.9, 1.1, 1],
+        x: [0, 100, -100, 50, -50, 0],
+        y: [0, -50, 50, -30, 30, 0],
+      }}
+      transition={{
+        duration: 30,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+      alt=""
+    />
   </div>
 );
 
@@ -489,7 +497,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <FloatingBackground />
+      <FloatingDoge />
       <TickerBar />
       {loading && <LoadingOverlay message={status?.message || "Initializing Protocol..."} />}
       <div className="glow-overlay" />
