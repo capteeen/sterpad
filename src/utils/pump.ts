@@ -116,9 +116,9 @@ export const launchToken = async (
     try {
         const signerKeypair = Keypair.fromSecretKey(bs58.decode(signerPrivateKey));
 
-        // Use a vanity mint address for the Shiba theme if requested
-        // Finding 'INU' is very fast
-        const mintKeypair = useVanity ? generateVanityKeypair('INU') : Keypair.generate();
+        // Use a vanity mint address for the Lobster theme if requested
+        // Finding 'STER' might take slightly longer than 'INU'
+        const mintKeypair = useVanity ? generateVanityKeypair('STER') : Keypair.generate();
 
         // 1. Upload to IPFS
         const formData = new FormData();

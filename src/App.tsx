@@ -6,10 +6,10 @@ import bs58 from 'bs58';
 import { createWallet, launchToken, getTokenMetadataFromMoralis, getFileFromUrl, fetchExternalMetadata, getTokensByWalletFromMoralis } from './utils/pump';
 import type { TokenMetadata } from './utils/pump';
 
-const ShibaIcon = ({ size = 24, className = "" }) => (
+const LobsterIcon = ({ size = 24, className = "" }) => (
   <img
-    src="/buff-doge.png"
-    alt="InuClawd Logo"
+    src="/buff-lobster.png"
+    alt="STERPAD Logo"
     width={size}
     height={size}
     className={className}
@@ -40,7 +40,7 @@ const LoadingOverlay: React.FC<{ message: string }> = ({ message }) => (
     </div>
     <div className="loader-text pulse">{message}</div>
     <div className="tech-text" style={{ marginTop: '1rem', opacity: 0.5 }}>
-      Mining InuClawd-Vanity Protocol... Est Speed: 4.2 GH/s
+      Mining STERPAD-Vanity Protocol... Est Speed: 4.2 GH/s
     </div>
   </motion.div>
 );
@@ -50,8 +50,8 @@ const TickerBar = () => (
     <div className="ticker">
       {[...Array(2)].map((_, i) => (
         <React.Fragment key={i}>
-          <div className="ticker-item">NEW LAUNCH: <span>$SHIBALORD</span> deployed 2m ago</div>
-          <div className="ticker-item">VAMP STATUS: <span>SUCCESS</span> cloned $PEPE_INU</div>
+          <div className="ticker-item">NEW LAUNCH: <span>$LOBSTERLORD</span> deployed 2m ago</div>
+          <div className="ticker-item">VAMP STATUS: <span>SUCCESS</span> cloned $PEPE_STER</div>
           <div className="ticker-item">NETWORK: <span>SOLANA MAINNET</span> 2840 TPS</div>
           <div className="ticker-item">VOLUME: <span>4,209 SOL</span> last 24h</div>
           <div className="ticker-item">SPAM PROTOCOL: <span>ACTIVE</span> 12 instances</div>
@@ -83,46 +83,18 @@ const TerminalLog: React.FC<{ logs: { type: string, message: string, time: strin
   );
 };
 
-const FloatingDoge = () => (
-  <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <motion.img
-      src="/buff-doge.png"
-      style={{
-        width: '600px',
-        height: '600px',
-        opacity: 0.1,
-        filter: 'drop-shadow(0 0 80px var(--primary-glow)) blur(2px)',
-      }}
-      animate={{
-        rotate: [0, 45, -45, 180, 0, 360],
-        rotateX: [0, 20, -20, 0],
-        rotateY: [0, -20, 20, 0],
-        scale: [1, 1.1, 0.9, 1.1, 1],
-        x: [0, 100, -100, 50, -50, 0],
-        y: [0, -50, 50, -30, 30, 0],
-      }}
-      transition={{
-        duration: 30,
-        repeat: Infinity,
-        ease: "easeInOut",
-      }}
-      alt=""
-    />
-  </div>
-);
-
 const Roadmap = () => (
   <section style={{ marginTop: '10rem' }}>
     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
       <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>Development <span style={{ color: 'var(--primary)' }}>Orbit</span></h2>
-      <p style={{ color: 'var(--text-muted)' }}>Our trajectory for the InuClawd ecosystem.</p>
+      <p style={{ color: 'var(--text-muted)' }}>Our trajectory for the STERPAD ecosystem.</p>
     </div>
 
     <div className="roadmap-container">
       <div className="roadmap-line" />
 
       {[
-        { phase: 'Phase 1', title: 'Neural Genesis', items: ['Vamp Protocol refinement', 'Spam deployment engine', 'Shiba branding pack'], status: 'Active' },
+        { phase: 'Phase 1', title: 'Neural Genesis', items: ['Vamp Protocol refinement', 'Spam deployment engine', 'Lobster branding pack'], status: 'Active' },
         { phase: 'Phase 2', title: 'Alpha Pack', items: ['Multi-wallet bundle buys', 'Sniper protection layers', 'Advanced metadata locking'], status: 'Pending' },
         { phase: 'Phase 3', title: 'Global Barker', items: ['Social media bot integration', 'One-click DEX listing', 'Liquidity migration tools'], status: 'Future' },
         { phase: 'Phase 4', title: 'Inu Metaverse', items: ['Cross-chain deployment', 'Governance token launch', 'Institutional fund portal'], status: 'Future' }
@@ -157,8 +129,8 @@ const Roadmap = () => (
 const UtilitySection = () => (
   <section style={{ marginTop: '10rem' }}>
     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-      <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>InuClawd <span style={{ color: 'var(--primary)' }}>Utility</span></h2>
-      <p style={{ color: 'var(--text-muted)' }}>Why Shibas trust our protocol for their missions.</p>
+      <h2 style={{ fontSize: '3rem', marginBottom: '1rem' }}>STERPAD <span style={{ color: 'var(--primary)' }}>Utility</span></h2>
+      <p style={{ color: 'var(--text-muted)' }}>Why Lobsters trust our protocol for their missions.</p>
     </div>
 
     <div className="utility-grid">
@@ -483,7 +455,7 @@ const App: React.FC = () => {
     }
 
     setLoading(true);
-    setStatus({ type: 'info', message: 'Mining InuClawd-Vanity address & Launching...' });
+    setStatus({ type: 'info', message: 'Mining STERPAD-Vanity address & Launching...' });
 
     addLog('info', `Deploying ${formData.name} (${formData.symbol})...`);
     try {
@@ -602,7 +574,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <FloatingDoge />
       <TickerBar />
       {loading && <LoadingOverlay message={status?.message || "Initializing Protocol..."} />}
       <div className="glow-overlay" />
@@ -610,8 +581,8 @@ const App: React.FC = () => {
       <div className="container">
         <nav className="navbar">
           <a href="#" className="logo">
-            <ShibaIcon className="inuclawd-glow" size={32} />
-            <span>InuClawd</span>
+            <LobsterIcon className="sterpad-glow" size={32} />
+            <span>STERPAD</span>
           </a>
         </nav>
       </div>
@@ -630,10 +601,10 @@ const App: React.FC = () => {
                   Generation Protocol v1.0.4
                 </div>
                 <h1 style={{ fontSize: '5rem', marginBottom: '1rem', fontWeight: 700, letterSpacing: '-2px' }}>
-                  Inu <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>Clawd</span>
+                  STER <span style={{ color: 'var(--primary)', textShadow: '0 0 30px var(--primary-glow)' }}>PAD</span>
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', maxWidth: '800px', margin: '0 auto', lineHeight: '1.6' }}>
-                  the fastest, paws-on way to launch your memecoins.
+                  the fastest, claws-on way to launch your memecoins.
                   Full metadata, IPFS storage, and dev-buy in one click.
                 </p>
 
@@ -649,7 +620,7 @@ const App: React.FC = () => {
 
                 <div className="claude-badge">
                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary)', boxShadow: '0 0 10px var(--secondary-glow)' }} />
-                  Supported by Claude AI
+                  Supported by clawdbot
                 </div>
               </motion.div>
             </div>
@@ -983,7 +954,7 @@ const App: React.FC = () => {
                     <div className="input-group">
                       <label>Token Name</label>
                       <input
-                        placeholder="e.g. Shiba King"
+                        placeholder="e.g. Lobster King"
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                         required
@@ -992,7 +963,7 @@ const App: React.FC = () => {
                     <div className="input-group">
                       <label>Symbol</label>
                       <input
-                        placeholder="e.g. SHIBA"
+                        placeholder="e.g. LOBSTER"
                         value={formData.symbol}
                         onChange={e => setFormData({ ...formData, symbol: e.target.value })}
                         required
@@ -1004,7 +975,7 @@ const App: React.FC = () => {
                     <label>Description</label>
                     <textarea
                       rows={3}
-                      placeholder="Tell the world about your Shiba..."
+                      placeholder="Tell the world about your Lobster..."
                       value={formData.description}
                       onChange={e => setFormData({ ...formData, description: e.target.value })}
                       required
@@ -1094,7 +1065,7 @@ const App: React.FC = () => {
                     style={{ width: '100%', marginTop: '1rem', height: '3.5rem', fontSize: '1.1rem' }}
                     disabled={loading}
                   >
-                    {loading ? 'Processing...' : 'LAUNCH PAWS FIRST'}
+                    {loading ? 'Processing...' : 'LAUNCH CLAWS FIRST'}
                   </button>
                 </form>
               </motion.div>
@@ -1122,7 +1093,7 @@ const App: React.FC = () => {
                     <div className="input-group">
                       <label>Base Token Name</label>
                       <input
-                        placeholder="e.g. Shiba Spam"
+                        placeholder="e.g. Lobster Spam"
                         value={spamFormData.name}
                         onChange={e => setSpamFormData({ ...spamFormData, name: e.target.value })}
                         required
@@ -1283,9 +1254,9 @@ const App: React.FC = () => {
               transition={{ delay: 0.1 }}
             >
               <div className="feature-icon"><Shield size={32} /></div>
-              <h3>Paws-Locked Security</h3>
+              <h3>Claws-Locked Security</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Local keypair storage only. Your private keys never leave your browser. Secure, audited, and paws-on.
+                Local keypair storage only. Your private keys never leave your browser. Secure, audited, and claws-on.
               </p>
             </motion.div>
 
@@ -1299,7 +1270,7 @@ const App: React.FC = () => {
               <div className="feature-icon"><Cpu size={32} /></div>
               <h3>Neural Vanity Protocol</h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                Automatically mine custom contract addresses ending in 'INU' for maximum meme aesthetic and clout.
+                Automatically mine custom contract addresses ending in 'STER' for maximum meme aesthetic and clout.
               </p>
             </motion.div>
           </section>
@@ -1320,7 +1291,7 @@ const App: React.FC = () => {
           >
             <h2 style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>Ready to Take the <span style={{ color: 'var(--primary)' }}>Lead?</span></h2>
             <p style={{ color: 'var(--text-muted)', maxWidth: '600px', margin: '0 auto 2.5rem' }}>
-              Join thousands of shibas deploying the next generation of tokens on Solana.
+              Join thousands of lobsters deploying the next generation of tokens on Solana.
             </p>
             <button className="btn-primary" onClick={() => window.scrollTo({ top: 500, behavior: 'smooth' })}>
               Start Deploying Now
@@ -1331,7 +1302,7 @@ const App: React.FC = () => {
 
       <footer style={{ marginTop: '8rem', paddingBottom: '4rem', textAlign: 'center', borderTop: '1px solid var(--border)', paddingTop: '4rem' }}>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-          &copy; 2026 InuClawd. Built with paws and treats.
+          &copy; 2026 STERPAD. Built with claws and butter.
         </p>
         <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
           <a href="https://x.com/clawdinudotfun?s=21" target="_blank" rel="noreferrer" style={{ color: 'var(--text-muted)', transition: 'color 0.3s' }}>
